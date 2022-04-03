@@ -17,7 +17,7 @@ public class NIOBuffer {
                                     /     \
                                    /       \
                                 channel    channel
-                                 ↑↓           ↑↓
+                                 ↑↓           ↑↓ flip切换
                                buffer        buffer
 
 
