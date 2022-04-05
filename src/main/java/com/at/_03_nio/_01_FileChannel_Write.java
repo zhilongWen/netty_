@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * @create 2022-04-05
  */
-public class _01_FileChannel {
+public class _01_FileChannel_Write {
 
 
     /*
