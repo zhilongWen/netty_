@@ -1,15 +1,12 @@
-package com.at._03_nio;
+package com.at._02_nio._04_buffer;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 /**
  * @create 2022-04-06
  */
-public class _05_Buffer_PutGet_Type {
+public class _01_Buffer_PutGet_Type {
 
     public static void main(String[] args) throws Exception{
 

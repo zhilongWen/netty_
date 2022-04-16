@@ -1,8 +1,7 @@
-package com.at._03_nio;
+package com.at._02_nio._03_filechannel;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**

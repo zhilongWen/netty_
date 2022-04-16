@@ -1,13 +1,9 @@
-package com.at._03_nio;
+package com.at._02_nio._03_filechannel;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @create 2022-04-05
