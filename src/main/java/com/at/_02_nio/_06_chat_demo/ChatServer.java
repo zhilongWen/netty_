@@ -1,13 +1,11 @@
-package com.at._02_nio._06_chat;
+package com.at._02_nio._06_chat_demo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * @create 2022-04-19

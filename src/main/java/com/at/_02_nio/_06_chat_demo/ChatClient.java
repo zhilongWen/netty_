@@ -1,4 +1,4 @@
-package com.at._02_nio._06_chat;
+package com.at._02_nio._06_chat_demo;
 
 
 import java.io.IOException;
