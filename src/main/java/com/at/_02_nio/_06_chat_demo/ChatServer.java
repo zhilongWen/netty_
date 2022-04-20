@@ -48,6 +48,8 @@ public class ChatServer {
 
             while (true) {
 
+                System.out.println("服务器监听线程：" + Thread.currentThread().getName());
+
                 int count = selector.select();
 
                 if (count < 1) {
@@ -108,6 +110,9 @@ public class ChatServer {
         SocketChannel channel = null;
 
         try {
+
+            System.out.println("服务器read线程：" + Thread.currentThread().getName());
+
             //获取channel
             channel = (SocketChannel) selectionKey.channel();
 
@@ -154,6 +159,8 @@ public class ChatServer {
     public void sendInfoToOtherClients(String info, SocketChannel selfChannel) throws IOException {
 
         System.out.println(selfChannel.getRemoteAddress() + " \t服务器正在转发数据....");
+
+        System.out.println("服务器send线程：" + Thread.currentThread().getName());
 
         //获取selector中的所有channel
         for (SelectionKey key : selector.keys()) {
