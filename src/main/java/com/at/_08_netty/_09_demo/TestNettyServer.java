@@ -22,12 +22,21 @@ public class TestNettyServer {
         EventLoopGroup workGroup = null;
 
         try {
+
+            /*
+
+                boosGroup,workGroup 含有的子线程（NioEventLoop）的个数默认为机器CPU核数的2倍 使用EventExecutor线程组管理
+
+                boosGroup将数据循环的发送给workGroup的各个线程
+
+             */
+
             //创建 BoosGroup 工作线程
             //bossGroup 一直循环 只是处理连接请求 , 真正的和客户端业务处理，会交给 workerGroup完成
-            boosGroup = new NioEventLoopGroup();
+            boosGroup = new NioEventLoopGroup(2);
 
             //创建 WorkGroup 工作线程组
-            workGroup = new NioEventLoopGroup();
+            workGroup = new NioEventLoopGroup(4);
 
 
             //配置服务端参数
