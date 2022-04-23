@@ -1,10 +1,7 @@
 package com.at._08_netty._09_demo;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -60,6 +57,18 @@ public class TestNettyServer {
 
             //绑定端口 生成一个ChannelFuture 对象
             ChannelFuture channelFuture = serverBootstrap.bind(9089).sync();
+
+            //给 ChannelFuture 注册监听器
+            channelFuture.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if(future.isSuccess()){
+                        System.out.println("server 端监听端口成功...");
+                    }else {
+                        System.out.println("server 端监听端口失败...");
+                    }
+                }
+            });
 
             //关闭通道
             channelFuture.channel().closeFuture().sync();
