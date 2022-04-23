@@ -43,6 +43,7 @@ public class TestNettyServer {
                     .channel(NioServerSocketChannel.class) //使用NioSocketChannel 作为服务器的通道实现
                     .option(ChannelOption.SO_BACKLOG,64) //设置线程队列得到连接个数
                     .childOption(ChannelOption.SO_KEEPALIVE,true) //设置保持活动连接状态
+                    .handler(null) // handler 在 BoosGroup 中生效    childHandler 在 WorkGroup 中生效
                     .childHandler(new ChannelInitializer<SocketChannel>() {  //创建一个通道初始化对象
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
