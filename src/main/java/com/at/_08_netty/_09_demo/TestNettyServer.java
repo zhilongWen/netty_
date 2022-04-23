@@ -58,6 +58,13 @@ public class TestNettyServer {
             //绑定端口 生成一个ChannelFuture 对象
             ChannelFuture channelFuture = serverBootstrap.bind(9089).sync();
 
+            /*
+                通过 isDone 方法来判断当前操作是否完成；
+                通过 isSuccess 方法来判断已完成的当前操作是否成功；
+                通过 getCause 方法来获取已完成的当前操作失败的原因；
+                通过 isCancelled 方法来判断已完成的当前操作是否被取消；
+                通过 addListener 方法来注册监听器，当操作已完成(isDone 方法返回完成)，将会通知 指定的监听器；如果 Future 对象已完成，则通知指定的监听器
+             */
             //给 ChannelFuture 注册监听器
             channelFuture.addListener(new ChannelFutureListener() {
                 @Override
