@@ -27,12 +27,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-//
-//        System.out.println("ChannelHandlerContext: " + ctx );
-//        System.out.println("channel: " + ctx.channel() );
-//        System.out.println("pipeline: " + ctx.pipeline() );
-//
-//        System.out.println("server端的handler：" + ctx.handler());
+
+
+        //每个浏览器都是独立的 channel pipline
+
+        System.out.println("ChannelHandlerContext: " + ctx );
+        System.out.println("channel: " + ctx.channel().hashCode() );
+        System.out.println("channel 的 pipeline : " + ctx.channel().pipeline().hashCode() );
+        System.out.println("pipeline: " + ctx.pipeline().hashCode() );
+        System.out.println("pipeline 的 channel: " + ctx.pipeline().channel().hashCode() );
+
+        System.out.println("server端的handler：" + ctx.handler());
 
 
         //断 msg 是不是 httpRequest请求
