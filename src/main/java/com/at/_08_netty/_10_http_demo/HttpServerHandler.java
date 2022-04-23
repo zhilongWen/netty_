@@ -44,6 +44,14 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
             ByteBuf buffer = Unpooled.copiedBuffer("Hello! 我是服务器 ..", CharsetUtil.UTF_8);
 
 
+            //过滤掉请求图标请求
+            HttpRequest httpRequest = (HttpRequest) msg;
+            String uri = httpRequest.uri();
+            System.out.println("http uri：" + uri);
+
+            if("/favicon.ico".equals(uri)) return;
+
+            System.out.println("............................");
 
 
 
