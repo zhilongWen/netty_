@@ -30,6 +30,8 @@ public class HttpServer {
             boosGroup = new NioEventLoopGroup(1);
             workGroup = new NioEventLoopGroup(2);
 
+            int i = 10/ 0;
+
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(boosGroup,workGroup)
                     .channel(NioServerSocketChannel.class)
