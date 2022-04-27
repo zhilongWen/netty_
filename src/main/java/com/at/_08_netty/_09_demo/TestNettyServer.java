@@ -1,10 +1,12 @@
 package com.at._08_netty._09_demo;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.CharsetUtil;
 
 import java.util.Optional;
 
@@ -43,12 +45,57 @@ public class TestNettyServer {
                     .channel(NioServerSocketChannel.class) //使用NioSocketChannel 作为服务器的通道实现
                     .option(ChannelOption.SO_BACKLOG,64) //设置线程队列得到连接个数
                     .childOption(ChannelOption.SO_KEEPALIVE,true) //设置保持活动连接状态
-                    .handler(null) // handler 在 BoosGroup 中生效    childHandler 在 WorkGroup 中生效
+//                    .handler(null) // handler 在 BoosGroup 中生效    childHandler 在 WorkGroup 中生效
                     .childHandler(new ChannelInitializer<SocketChannel>() {  //创建一个通道初始化对象
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
+
                             System.out.println("初始化server端channel对象...");
+
                             socketChannel.pipeline().addLast(new TestNettyServerHandler());
+
+
+                            socketChannel.pipeline().addLast(new ChannelInboundHandlerAdapter(){
+
+                                @Override
+                                public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+
+                                    System.out.println("server端线程：" + Thread.currentThread().getName());
+
+                                    System.out.println("server ChannelHandlerContext：" + ctx);
+
+
+
+                                    Channel channel = ctx.channel();
+                                    ChannelPipeline pipeline = ctx.pipeline();
+
+
+                                    System.out.println("server doing...");
+
+
+
+
+                                }
+
+
+                                @Override
+                                public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+
+                                    ctx.writeAndFlush(Unpooled.copiedBuffer("server端给client端提示提示信息：server 端已读取 client 端发送的信息... ", CharsetUtil.UTF_8));
+
+                                }
+
+
+
+                                @Override
+                                public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                                    cause.printStackTrace();
+                                    ctx.close();
+                                }
+                            });
+
+
                         }
                     });
 
