@@ -8,6 +8,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -24,6 +25,37 @@ public class HandlerServer {
         client  -------------------->   server
                 <--------------------
                         入栈
+
+
+
+
+
+
+        client                                                                                                                    server
+                                      +--------------------------+                    +--------------------------+
+                    +---------------- | decoder (inBoundHandler) | <---+   +--------- | encoder(outBoundHandler) | <------------+
+                    |                 +--------------------------+     |   |          +--------------------------+              |
+                    |                                                  |   |                                                    |
+                    ↓                                                  |   ↓                                                    |
+            +---------------+                                        +--------+                                           +---------------+
+            | clientHandler |                                        | socket |                                           | serverHandler |
+            +---------------+                                        +--------+                                           +---------------+
+                    |                                                  ↑   |                                                    ↑
+                    |                                                  |   |                                                    |
+                    |                  +--------------------------+    |   |            +--------------------------+            |
+                    +----------------> | encoder(outBoundHandler) | ---+   +----------> | decoder (inBoundHandler) | -----------+
+                                       +--------------------------+                     +--------------------------+
+
+
+
+
+
+
+
+
+
+
+
      */
 
     public static void main(String[] args) throws Exception {
@@ -79,6 +111,18 @@ public class HandlerServer {
                                 }
                             });
 
+                            //添加编码器
+                            pipeline.addLast(new MessageToByteEncoder<Long>() {
+                                @Override
+                                protected void encode(ChannelHandlerContext ctx, Long msg, ByteBuf out) throws Exception {
+                                    System.out.println("server 端编码器 MessageToByteEncoder 被调用~~~");
+                                    System.out.println("server 端发送的数据 msg = " + msg);
+
+                                    //将数据发送到 server 端
+                                    out.writeLong(msg);
+                                }
+                            });
+
                             //添加自定义处理handler 处理client中的数据
                             pipeline.addLast(new SimpleChannelInboundHandler<Long>() {
                                 @Override
@@ -87,6 +131,10 @@ public class HandlerServer {
                                     System.out.println("server 自定义处理handler~~~");
 
                                     System.out.println("从 client：" + ctx.channel().remoteAddress() + " 读取到数据 = " + msg);
+
+
+                                    //处理完数据后给 client 端发送一条数据
+                                    ctx.writeAndFlush(12345L);
 
                                 }
 

@@ -7,10 +7,13 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.CharsetUtil;
+
+import java.util.List;
 
 /**
  * @create 2022-04-27
@@ -46,12 +49,23 @@ public class HandlerClient {
                                 @Override
                                 protected void encode(ChannelHandlerContext ctx, Long msg, ByteBuf out) throws Exception {
 
-                                    System.out.println("client 端编码器 MessageToByteEncoder 被调用~~~");
+                                    System.out.println("client 端 编码器 MessageToByteEncoder 被调用~~~");
                                     System.out.println("client 端发送的数据 msg = " + msg);
 
                                     //将数据发送到 server 端
                                     out.writeLong(msg);
 
+                                }
+                            });
+
+                            //添加解码器
+                            pipeline.addLast(new ByteToMessageDecoder() {
+                                @Override
+                                protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+                                    System.out.println("client 端 解码器 ByteToMessageDecoder 被调用~~~");
+
+                                    //因为 long 8个字节, 需要判断有8个字节，才能读取一个long
+                                    if(in.readableBytes() >= 8) out.add(in.readLong());
                                 }
                             });
 
@@ -61,6 +75,8 @@ public class HandlerClient {
                                 @Override
                                 protected void channelRead0(ChannelHandlerContext ctx, Long msg) throws Exception {
 
+                                    System.out.println("client 读取 server 回复的信息：msg = " + msg);
+
                                 }
 
                                 @Override
@@ -69,7 +85,7 @@ public class HandlerClient {
                                     System.out.println("client 自定义 handler 被调用~~~");
 
                                     //数据将交由编码器处理
-//                                    ctx.writeAndFlush(1243143L);
+                                    ctx.writeAndFlush(1243143L);
 
 
                                     /*
@@ -122,7 +138,7 @@ public class HandlerClient {
 
 
                                      */
-                                    ctx.writeAndFlush(Unpooled.copiedBuffer("qwertyuiqwertyui", CharsetUtil.UTF_8));
+//                                    ctx.writeAndFlush(Unpooled.copiedBuffer("qwertyuiqwertyui", CharsetUtil.UTF_8));
 
 
                                 }
