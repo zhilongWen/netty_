@@ -1,20 +1,19 @@
-package com.at._08_netty._15_codec;
+package com.at._08_netty.test;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.protobuf.ProtobufDecoder;
-import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 /**
- * @create 2022-04-26
+ * @create 2022-04-27
  */
-public class CodecClient {
-
+public class TestClient {
     public static void main(String[] args) {
 
 
@@ -30,13 +29,11 @@ public class CodecClient {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
 
-                            pipeline.addLast("encoder",new ProtobufEncoder());
+                            pipeline.addLast("encoder", new StringEncoder())
+                                    .addLast("decoder", new StringDecoder());
 
-                            pipeline.addLast(new CodecClientHandler());
+                            pipeline.addLast(new TestClientHandler());
 
-                            pipeline.addLast(new ChannelInboundHandlerAdapter(){
-
-                            });
 
                         }
                     });
@@ -56,5 +53,4 @@ public class CodecClient {
 
 
     }
-
 }
