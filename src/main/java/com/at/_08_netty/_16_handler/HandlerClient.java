@@ -2,6 +2,7 @@ package com.at._08_netty._16_handler;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -9,6 +10,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.CharsetUtil;
 
 /**
  * @create 2022-04-27
@@ -67,8 +69,65 @@ public class HandlerClient {
                                     System.out.println("client 自定义 handler 被调用~~~");
 
                                     //数据将交由编码器处理
-                                    ctx.writeAndFlush(1243143L);
+//                                    ctx.writeAndFlush(1243143L);
+
+
+                                    /*
+                                        qwertyuiqwertyui 16个字节
+
+                                        server 端的解码器每次处理 8 个字节
+                                        所以 server 端编码器被调用了两次 解编码器将数据分两次发送到下游的 handler 所有 下游的 handler 也被调用了两次
+
+
+                                        client 端的编码器没有被调用？？？？
+
+                                            编码器 MessageToByteEncoder 的 write 方法会判断传入的类型是不是需要编码处理
+                                            因此编写 Encoder 是要注意传入的数据类型和处理的数据类型一致
+
+                                            @Override
+                                            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+                                                ByteBuf buf = null;
+                                                try {
+                                                    if (acceptOutboundMessage(msg)) {  //判断当前msg 是不是应该处理的类型，如果是就处理，不是就跳过encode
+                                                        @SuppressWarnings("unchecked")
+                                                        I cast = (I) msg;
+                                                        buf = allocateBuffer(ctx, cast, preferDirect);
+                                                        try {
+                                                            encode(ctx, cast, buf);
+                                                        } finally {
+                                                            ReferenceCountUtil.release(cast);
+                                                        }
+
+                                                        if (buf.isReadable()) {
+                                                            ctx.write(buf, promise);
+                                                        } else {
+                                                            buf.release();
+                                                            ctx.write(Unpooled.EMPTY_BUFFER, promise);
+                                                        }
+                                                        buf = null;
+                                                    } else {
+                                                        ctx.write(msg, promise);
+                                                    }
+                                                } catch (EncoderException e) {
+                                                    throw e;
+                                                } catch (Throwable e) {
+                                                    throw new EncoderException(e);
+                                                } finally {
+                                                    if (buf != null) {
+                                                        buf.release();
+                                                    }
+                                                }
+                                            }
+
+
+
+                                     */
+                                    ctx.writeAndFlush(Unpooled.copiedBuffer("qwertyuiqwertyui", CharsetUtil.UTF_8));
+
+
                                 }
+
+
                             });
 
 
