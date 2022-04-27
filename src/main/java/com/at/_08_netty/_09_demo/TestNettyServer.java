@@ -52,7 +52,7 @@ public class TestNettyServer {
 
                             System.out.println("初始化server端channel对象...");
 
-                            socketChannel.pipeline().addLast(new TestNettyServerHandler());
+//                            socketChannel.pipeline().addLast(new TestNettyServerHandler());
 
 
                             socketChannel.pipeline().addLast(new ChannelInboundHandlerAdapter(){

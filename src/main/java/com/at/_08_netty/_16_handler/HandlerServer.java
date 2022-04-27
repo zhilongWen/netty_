@@ -45,6 +45,12 @@ public class HandlerServer {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
 
+                            /*
+
+                                解码器 handler -> other handler
+
+                             */
+
                             System.out.println("server ChannelInitializer 被调用~~~");
 
                             ChannelPipeline pipeline = ch.pipeline();
@@ -91,7 +97,6 @@ public class HandlerServer {
                                 }
                             });
 
-                            System.out.println(".....////");
 
 
                         }

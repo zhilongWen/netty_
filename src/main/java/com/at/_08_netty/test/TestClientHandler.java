@@ -22,7 +22,7 @@ public class TestClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive (ChannelHandlerContext ctx) throws Exception {
 
         ctx.writeAndFlush(Unpooled.copiedBuffer("client 端发送的数据", CharsetUtil.UTF_8));
 

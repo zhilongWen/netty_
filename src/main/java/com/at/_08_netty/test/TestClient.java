@@ -29,9 +29,6 @@ public class TestClient {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
 
-                            pipeline.addLast("encoder", new StringEncoder())
-                                    .addLast("decoder", new StringDecoder());
-
                             pipeline.addLast(new TestClientHandler());
 
 

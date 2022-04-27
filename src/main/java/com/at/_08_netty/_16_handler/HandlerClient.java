@@ -30,6 +30,11 @@ public class HandlerClient {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
 
+                            /*
+
+                                other handler -> 编码器 handler
+                             */
+
                             System.out.println("client ChannelInitializer 被调用~~~");
 
                             ChannelPipeline pipeline = ch.pipeline();
@@ -57,9 +62,11 @@ public class HandlerClient {
                                 }
 
                                 @Override
-                                public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                                public void channelActive(ChannelHandlerContext ctx) throws Exception {
+
                                     System.out.println("client 自定义 handler 被调用~~~");
-                                    System.out.println("client 端即将发送数据给 server 端....");
+
+                                    //数据将交由编码器处理
                                     ctx.writeAndFlush(1243143L);
                                 }
                             });
