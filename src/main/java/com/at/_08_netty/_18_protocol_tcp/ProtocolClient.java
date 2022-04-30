@@ -7,10 +7,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * @create 2022-04-30
@@ -43,6 +46,23 @@ public class ProtocolClient {
                                 }
                             });
 
+                            //添加解码器
+                            pipeline.addLast(new ReplayingDecoder<MessageProtocol>() {
+                                @Override
+                                protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+
+                                    System.out.println("client 解码器 ...");
+
+                                    int len = in.readInt();
+
+                                    byte[] content = new byte[len];
+                                    in.readBytes(content);
+
+                                    out.add(new MessageProtocol(len,content));
+
+                                }
+                            });
+
                             //添加handler
                             pipeline.addLast(new SimpleChannelInboundHandler<MessageProtocol>() {
 
@@ -65,6 +85,15 @@ public class ProtocolClient {
 
                                 @Override
                                 protected void channelRead0(ChannelHandlerContext ctx, MessageProtocol msg) throws Exception {
+
+                                    System.out.println("client 读取数据 ~~~");
+
+                                    System.out.println("读取数据长度 len=" + msg.getLen());
+                                    System.out.println("读取数据内容 content=" + new String(msg.getContent(), Charset.forName("utf-8")));
+
+
+                                    System.out.println();
+                                    System.out.println();
 
                                 }
                             });

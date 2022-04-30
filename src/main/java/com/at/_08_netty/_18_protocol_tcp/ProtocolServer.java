@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -60,6 +61,22 @@ public class ProtocolServer {
                                 }
                             });
 
+                            //添加编码器
+                            pipeline.addLast(new MessageToByteEncoder<MessageProtocol>() {
+                                @Override
+                                protected void encode(ChannelHandlerContext ctx, MessageProtocol msg, ByteBuf out) throws Exception {
+
+                                    System.out.println("server 编码器 ~~~");
+
+                                    int len = msg.getLen();
+                                    byte[] content = msg.getContent();
+
+                                    out.writeInt(len);
+                                    out.writeBytes(content);
+
+                                }
+                            });
+
 
                             //添加自定义handler
                             pipeline.addLast(new SimpleChannelInboundHandler<MessageProtocol>() {
@@ -76,10 +93,36 @@ public class ProtocolServer {
 
                                     System.out.println("server 端数据包的数量 count=" + (++this.count));
 
+                                    System.out.println();
+                                    System.out.println();
+
+
+//                                    //回复 client 信息
+//                                    String responseMsg = UUID.randomUUID().toString();
+//
+//                                    byte[] responseContent = responseMsg.getBytes(StandardCharsets.UTF_8);
+//                                    int length = responseMsg.getBytes(StandardCharsets.UTF_8).length;
+//
+//                                    MessageProtocol messageProtocol = new MessageProtocol(length, responseContent);
+//
+//                                    ctx.writeAndFlush(messageProtocol);
 
 
 
+                                }
 
+                                @Override
+                                public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+
+                                    //回复 client 信息
+                                    String responseMsg = UUID.randomUUID().toString();
+
+                                    byte[] responseContent = responseMsg.getBytes(StandardCharsets.UTF_8);
+                                    int length = responseMsg.getBytes(StandardCharsets.UTF_8).length;
+
+                                    MessageProtocol messageProtocol = new MessageProtocol(length, responseContent);
+
+                                    ctx.writeAndFlush(messageProtocol);
                                 }
 
                                 @Override
