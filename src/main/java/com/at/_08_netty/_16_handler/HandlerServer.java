@@ -78,7 +78,7 @@ LengthFieldBasedFrameDecoder：通过指定 长度来标识整包消息，这样
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.SO_BACKLOG, 64)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .handler(new LoggingHandler(LogLevel.INFO))
+//                    .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
