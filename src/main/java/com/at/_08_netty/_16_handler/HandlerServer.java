@@ -9,6 +9,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -49,11 +50,16 @@ public class HandlerServer {
 
 
 
+        不论解码器handler 还是 编码器handler 即接  收的消息类型必须与待处理的消息类型一致， 否则该handler不会被执行
+        在解码器 进行数据解码时，需要判断 缓存 区	的数据是否足够 ，否则接收到的结果会与期望的结果不一致
 
 
+LineBasedFrameDecoder：这个类在Netty内部也有使用，它使用行尾控制字符（\n或者\r\n） 作为分隔符来解析数据。
+DelimiterBasedFrameDecoder：使用自定义 的特殊字符作为消息的分隔符。
+HttpObjectDecoder：一个HTTP数据的解码器
+LengthFieldBasedFrameDecoder：通过指定 长度来标识整包消息，这样就可以自动的处理 黏包和半包消息。
 
-
-
+....
 
 
      */
@@ -88,8 +94,11 @@ public class HandlerServer {
                             ChannelPipeline pipeline = ch.pipeline();
 
                             //添加一个入栈的解码器 MessageToByteEncoder
+
+/*
                             pipeline.addLast(new ByteToMessageDecoder() {
-                                /**
+                                */
+/**
                                  *  decode 方法会根据接收的数据 被调用多次 直到没有新的元素被添加到 list 中
                                  *  或者 ByteBuf 没有更多的可读字节
                                  *
@@ -99,7 +108,8 @@ public class HandlerServer {
                                  * @param in 入站的 ByteBuf
                                  * @param out List 集合，将解码后的数据传给下一个handler
                                  * @throws Exception
-                                 */
+                                 *//*
+
                                 @Override
                                 protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 
@@ -110,6 +120,24 @@ public class HandlerServer {
 
                                 }
                             });
+*/
+
+
+                            pipeline.addLast(new ReplayingDecoder<Void>() {
+                                @Override
+                                protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+
+                                    System.out.println("server 端解码器 ReplayingDecoder 被调用~~~");
+
+                                    //ReplayingDecoder 无需判断数据是否足够读取，内部会进行判断
+                                    out.add(in.readLong());
+
+                                }
+                            });
+
+
+
+
 
                             //添加编码器
                             pipeline.addLast(new MessageToByteEncoder<Long>() {
