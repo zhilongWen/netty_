@@ -36,6 +36,11 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId></groupId>
+            <artifactId>netty-all-</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>log4j</groupId>
