@@ -43,12 +43,13 @@
             <version>2.1.2</version>
         </dependency>
 
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/gnu.io/rxtx &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>gnu.io</groupId>-->
-<!--            <artifactId>rxtx</artifactId>-->
-<!--            <version>2.1.7</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.20.Final</version>
+            <systemPath>${lib.path}/lib/netty-all-4.1.20.Final.jar</systemPath>
+            <scope>system</scope>
+        </dependency>
 
 
 
