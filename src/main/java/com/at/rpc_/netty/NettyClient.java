@@ -1,4 +1,4 @@
-package com.at.rpc.netty;
+package com.at.rpc_.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -25,7 +25,7 @@ public class NettyClient {
 
     private static NettyClientHandler handler;
 
-    public synchronized Object getBean(final Class<?> serverClass) {
+    public  Object getBean(final Class<?> serverClass) {
 
 
         Object instance = Proxy.newProxyInstance(
@@ -42,7 +42,7 @@ public class NettyClient {
 
                         System.out.println("invoke_2 handler = " + handler);
 
-                        handler.setParam("rpc");
+                        handler.setParam("rpc_");
 
                         Object result = executor.submit(handler).get();
 
@@ -62,7 +62,7 @@ public class NettyClient {
 
         handler = new NettyClientHandler();
 
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup group = new NioEventLoopGroup(1);
 
         try {
             Bootstrap b = new Bootstrap();

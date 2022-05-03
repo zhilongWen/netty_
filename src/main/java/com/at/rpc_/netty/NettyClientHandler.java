@@ -1,8 +1,7 @@
-package com.at.rpc.netty;
+package com.at.rpc_.netty;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.concurrent.Callable;
 
@@ -11,7 +10,7 @@ import java.util.concurrent.Callable;
  */
 public class NettyClientHandler extends ChannelInboundHandlerAdapter implements Callable {
 
-    private ChannelHandlerContext ctx;
+    private  ChannelHandlerContext ctx;
     private String result;
     private String param;
 
@@ -19,6 +18,10 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter implements 
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("client 与 server channel 建立连接");
         this.ctx = ctx;
+        System.out.println("ctx1 = " + ctx);
+        System.out.println("ctx = " + this.ctx);
+        this.ctx.writeAndFlush("client 与 server channel 建立连接~~~~");
+
     }
 
     @Override
@@ -43,7 +46,13 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter implements 
 
         System.out.println("call-1.... param = " + param);
 
-        ctx.writeAndFlush(param);
+
+        if(this.ctx == null) System.out.println("ctx null、、、、、、、、、、、、、、、、、、、、、、、、、、、");
+
+        this.ctx.writeAndFlush(param);
+
+
+
 
         wait();
 

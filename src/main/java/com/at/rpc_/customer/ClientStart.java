@@ -1,7 +1,7 @@
-package com.at.rpc.customer;
+package com.at.rpc_.customer;
 
-import com.at.rpc.netty.NettyClient;
-import com.at.rpc.publicinter.Service;
+import com.at.rpc_.netty.NettyClient;
+import com.at.rpc_.publicinter.Service;
 
 /**
  * @create 2022-05-03
