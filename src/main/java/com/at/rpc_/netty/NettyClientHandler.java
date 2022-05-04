@@ -10,28 +10,33 @@ import java.util.concurrent.Callable;
  */
 public class NettyClientHandler extends ChannelInboundHandlerAdapter implements Callable {
 
-    private  ChannelHandlerContext ctx;
+    private ChannelHandlerContext ctx;
     private String result;
     private String param;
 
     @Override
+//    public void channelActive(ChannelHandlerContext ctx) throws Exception {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("client 与 server channel 建立连接");
+        System.out.println("client 与 server channel 建立连接 thread = " + Thread.currentThread().getName());
         this.ctx = ctx;
-        System.out.println("ctx1 = " + ctx);
-        System.out.println("ctx = " + this.ctx);
-        this.ctx.writeAndFlush("client 与 server channel 建立连接~~~~");
+        System.out.println("ctx = " + ctx);
+        System.out.println("this.ctx = " + this.ctx);
+        this.ctx.writeAndFlush("=====client 与 server channel 建立连接~~~~");
 
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+
         System.out.println("client NettyClientHandler 出现异常：" + cause.getMessage());
         ctx.close();
     }
 
     @Override
+//    public synchronized void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     public synchronized void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+        System.out.println("channelRead thread = " + Thread.currentThread().getName());
 
         System.out.println("读取 channel 信息 msg = "+ msg);
 
@@ -42,7 +47,10 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter implements 
     }
 
     @Override
+//    public synchronized Object call() throws Exception {
     public synchronized Object call() throws Exception {
+
+        System.out.println("call-1 thread = " + Thread.currentThread().getName());
 
         System.out.println("call-1.... param = " + param);
 
@@ -56,12 +64,15 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter implements 
 
         wait();
 
+        System.out.println("call-1 thread = " + Thread.currentThread().getName());
+
         System.out.println("call-2... result = " + result);
 
         return result;
     }
 
-    public void setParam(String param){
+    void setParam(String param){
+        System.out.println("setParam thread = " + Thread.currentThread().getName());
         System.out.println("setParam。。。。");
         this.param = param;
     }

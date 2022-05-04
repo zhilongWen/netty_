@@ -19,7 +19,7 @@ public class NettyService {
 
 
         EventLoopGroup boosGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workGroup = new NioEventLoopGroup(1);
+        EventLoopGroup workGroup = new NioEventLoopGroup(2);
 
         try {
             ServerBootstrap b = new ServerBootstrap();

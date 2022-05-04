@@ -15,11 +15,12 @@ public class ClientStart {
 
         Service service = (Service) customer.getBean(Service.class);
 
-//       for (;;){
+       for (;;){
+           System.out.println("ClientStart = " + Thread.currentThread().getName());
            String result = service.hello("hello，netty");
            System.out.println("result=" + result);
 
-//       }
+       }
 
     }
 }
