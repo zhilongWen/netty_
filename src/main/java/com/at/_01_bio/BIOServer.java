@@ -18,6 +18,8 @@ public class BIOServer {
 
         ctrl + ]
 
+        send xxx
+
      */
 
     public static void main(String[] args) throws Exception{
