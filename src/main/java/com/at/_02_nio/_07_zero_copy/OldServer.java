@@ -17,17 +17,17 @@ public class OldServer {
         ServerSocket serverSocket = new ServerSocket(8090);
 
 
-        while (true){
+        while (true) {
 
             Socket socket = serverSocket.accept();
             DataInputStream inputStream = new DataInputStream(socket.getInputStream());
 
-            byte[] bytes = new byte[10240];
+            byte[] bytes = new byte[8 * 1024];
 
-            while (true){
+            while (true) {
                 int read = inputStream.read(bytes, 0, bytes.length);
 
-                if(read == -1) break;
+                if (read == -1) break;
 
             }
 

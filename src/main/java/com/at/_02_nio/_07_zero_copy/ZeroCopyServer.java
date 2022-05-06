@@ -19,7 +19,7 @@ public class ZeroCopyServer {
 
         serverSocket.bind(new InetSocketAddress(8090));
 
-        ByteBuffer buffer = ByteBuffer.allocate(10240);
+        ByteBuffer buffer = ByteBuffer.allocate(8 * 1024);
 
 
         while (true){

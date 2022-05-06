@@ -26,7 +26,7 @@ public class OldClient {
 
             outputStream  = new DataOutputStream(socket.getOutputStream());
 
-            byte[] bytes = new byte[10240];
+            byte[] bytes = new byte[8 * 1024];
             long readCount;
             long total = 0;
 
