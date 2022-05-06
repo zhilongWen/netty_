@@ -22,7 +22,7 @@ public class OldClient {
             socket  = new Socket("127.0.0.1", 8090);
 
 //            inputStream = new FileInputStream("files/protoc-3.6.1-win32.zip");
-            inputStream = new FileInputStream("files/Typora.zip");
+            inputStream = new FileInputStream("files/Typora.zip"); //77662345 字节
 
             outputStream  = new DataOutputStream(socket.getOutputStream());
 
