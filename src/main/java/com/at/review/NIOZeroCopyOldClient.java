@@ -51,9 +51,6 @@ public class NIOZeroCopyOldClient {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
-
     }
-
 }

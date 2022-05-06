@@ -29,10 +29,6 @@ public class NIOZeroCopyServer {
                 buffer.rewind();
 
             }
-
         }
-
-
     }
-
 }

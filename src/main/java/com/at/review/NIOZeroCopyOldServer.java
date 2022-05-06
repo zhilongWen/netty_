@@ -24,10 +24,7 @@ public class NIOZeroCopyOldServer {
             while ((inputStream.read(buffer, 0, buffer.length)) != -1) {
 
             }
-
         }
 
-
     }
-
 }
