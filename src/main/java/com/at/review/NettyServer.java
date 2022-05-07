@@ -65,14 +65,17 @@ public class NettyServer {
                                     System.out.println("ChannelInitializer channelRead thread name = " + Thread.currentThread().getName());
 
 
-
                                     System.out.println("ChannelInitializer channelRead 普通handle thread name = " + Thread.currentThread().getName());
                                     ByteBuf buffer0 = (ByteBuf) msg;
                                     System.out.println("client：" + ctx.channel().remoteAddress() + " 普通handle 发送过来的数据 msg = " + buffer0.toString(CharsetUtil.UTF_8));
 
 
                                     ctx.channel().eventLoop().execute(() -> {
-                                        try { TimeUnit.SECONDS.sleep(5); } catch (InterruptedException e) { e.printStackTrace(); }
+                                        try {
+                                            TimeUnit.SECONDS.sleep(5);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
                                         System.out.println("ChannelInitializer channelRead taskQueue handle thread name = " + Thread.currentThread().getName());
                                         ByteBuf buffer1 = (ByteBuf) msg;
                                         System.out.println("client：" + ctx.channel().remoteAddress() + " 发送过来的数据 msg = " + buffer1.toString(CharsetUtil.UTF_8));
@@ -127,6 +130,13 @@ public class NettyServer {
 
             //关闭通道
             channelFuture.channel().closeFuture().sync();
+
+            channelFuture.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+
+                }
+            });
 
 
         } catch (InterruptedException e) {
