@@ -25,13 +25,16 @@ public class NettyServer {
         EventLoopGroup boosGroup = null;
         EventLoopGroup workGroup = null;
 
+
+//        EventLoop next = boosGroup.next();
+
         try {
 
             // 创建 boosGroup 一直循环只处理连接请求，真正的业务交由 workGroup 处理
-            boosGroup = new NioEventLoopGroup();
+            boosGroup = new NioEventLoopGroup(1);
 
             // 创建 workGroup 处理 read write 事件
-            workGroup = new NioEventLoopGroup();
+            workGroup = new NioEventLoopGroup(4);
 
             ServerBootstrap b = new ServerBootstrap();
 
