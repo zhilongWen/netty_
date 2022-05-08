@@ -24,17 +24,11 @@
             <version>3.13.0</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>io.netty</groupId>-->
-<!--            <artifactId>netty-all</artifactId>-->
-<!--            <version>4.1.20.Final</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>com.google.protobuf</groupId>-->
-<!--                    <artifactId>protobuf-java</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.20.Final</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.jctools/jctools-core -->
         <dependency>
@@ -43,13 +37,13 @@
             <version>2.1.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.20.Final</version>
-            <systemPath>${lib.path}/lib/netty-all-4.1.20.Final.jar</systemPath>
-            <scope>system</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.netty</groupId>-->
+<!--            <artifactId>netty-all</artifactId>-->
+<!--            <version>4.1.20.Final</version>-->
+<!--            <systemPath>${lib.path}/lib/netty-all-4.1.20.Final.jar</systemPath>-->
+<!--            <scope>system</scope>-->
+<!--        </dependency>-->
 
 
 
