@@ -7,11 +7,17 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.ReplayingDecoder;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @create 2022-05-09
@@ -19,6 +25,50 @@ import java.util.List;
 public class NettyHandlerServer {
 
 
+    /*
+
+                        出栈
+        client  -------------------->   server
+                <--------------------
+                        入栈
+
+
+
+
+
+
+        client                                                                                                                    server
+                                      +--------------------------+                    +--------------------------+
+                    +---------------- | decoder (inBoundHandler) | <---+   +--------- | encoder(outBoundHandler) | <------------+
+                    |                 +--------------------------+     |   |          +--------------------------+              |
+                    |                                                  |   |                                                    |
+                    ↓                                                  |   ↓                                                    |
+            +---------------+                                        +--------+                                           +---------------+
+            | clientHandler |                                        | socket |                                           | serverHandler |
+            +---------------+                                        +--------+                                           +---------------+
+                    |                                                  ↑   |                                                    ↑
+                    |                                                  |   |                                                    |
+                    |                  +--------------------------+    |   |            +--------------------------+            |
+                    +----------------> | encoder(outBoundHandler) | ---+   +----------> | decoder (inBoundHandler) | -----------+
+                                       +--------------------------+                     +--------------------------+
+
+
+
+
+        不论解码器handler 还是 编码器handler 即接  收的消息类型必须与待处理的消息类型一致， 否则该handler不会被执行
+        在解码器 进行数据解码时，需要判断 缓存 区	的数据是否足够 ，否则接收到的结果会与期望的结果不一致
+
+
+LineBasedFrameDecoder：这个类在Netty内部也有使用，它使用行尾控制字符（\n或者\r\n） 作为分隔符来解析数据。
+DelimiterBasedFrameDecoder：使用自定义 的特殊字符作为消息的分隔符。
+HttpObjectDecoder：一个HTTP数据的解码器
+LengthFieldBasedFrameDecoder：通过指定 长度来标识整包消息，这样就可以自动的处理 黏包和半包消息。
+StringDecoder
+
+....
+
+
+     */
     public static void main(String[] args) {
 
 
@@ -42,10 +92,21 @@ public class NettyHandlerServer {
 
                             ChannelPipeline pipeline = ch.pipeline();
 
+                            pipeline.channel().eventLoop().execute(() -> {});
+
+                            pipeline.channel().eventLoop().schedule(() -> {},10, TimeUnit.SECONDS);
+
                             // 添加一个入站的解码器
 //                            pipeline.addLast(new ByteToMessageDecoder() {
 //                                @Override
 //                                protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+//
+//                                    /*
+//                                        decode 方法会根据接收的数据 被调用多次 直到没有新的元素被添加到 out 中 或者 ByteBuf 没有更多的可读字节
+//
+//                                        如果 out 不为空 就会将 list 传递给下一个 ChannelInboundHandler 处理 该处理器的方法也会被调用多次
+//
+//                                     */
 //
 //                                    System.out.println("server 端解码器 ByteToMessageDecoder 被调用~~~~");
 //
