@@ -27,6 +27,7 @@ public class NettyHeartBeat {
 
 
         try {
+
             boosGroup = new NioEventLoopGroup(1);
             workGroup = new NioEventLoopGroup(4);
 

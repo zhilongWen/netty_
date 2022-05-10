@@ -5,6 +5,7 @@ package com.at._08_netty._15_codec.StudentPOJO;
 option java_package = "com.at._08_netty._15_codec";
 option java_outer_classname = "StudentPOJO";
 option java_multiple_files = false;
+option optimize_for = SPEED;
 
 message Student {
 
