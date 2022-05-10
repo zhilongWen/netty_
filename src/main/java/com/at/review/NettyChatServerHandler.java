@@ -115,7 +115,11 @@ public class NettyChatServerHandler extends SimpleChannelInboundHandler<String> 
 
         Channel channel = ctx.channel();
 
-        channelGroup.stream().filter(ch -> ch!=channel).forEach(ch -> ch.writeAndFlush("[client] " + channel.remoteAddress() + " 的信息 msg = " + msg));
+        String data = "[client] " + channel.remoteAddress() + " 的信息 msg = " + msg;
+
+        System.out.println("[server] --> " + data);
+
+        channelGroup.stream().filter(ch -> ch!=channel).forEach(ch -> ch.writeAndFlush(data));
 
 
     }
