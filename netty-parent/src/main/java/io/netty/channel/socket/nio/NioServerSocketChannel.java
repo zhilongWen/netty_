@@ -56,6 +56,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
              *
              *  See <a href="https://github.com/netty/netty/issues/2308">#2308</a>.
              */
+            // 实际提供的 channel 就是 java.nio.channels.ServerSocketChannel 的子类 sun.nio.ch.ServerSocketChannelImpl
             return provider.openServerSocketChannel();
         } catch (IOException e) {
             throw new ChannelException(
@@ -69,6 +70,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
      * Create a new instance
      */
     public NioServerSocketChannel() {
+        // this(java.nio.channels.ServerSocketChannel 的子类 sun.nio.ch.ServerSocketChannelImpl)
         this(newSocket(DEFAULT_SELECTOR_PROVIDER));
     }
 
@@ -83,7 +85,9 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
      * Create a new instance using the given {@link ServerSocketChannel}.
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
+        // 设置 channel accept 参数
         super(null, channel, SelectionKey.OP_ACCEPT);
+        // 创建一个 NioServerSocketChannelConfig 对象，用于对外展示配置
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
     }
 
@@ -138,10 +142,13 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {
+
+        // 通过 SocketUtils 工具类 调用 ServerSocketChannel 的 accept 方法 获取 tcp 连接
         SocketChannel ch = SocketUtils.accept(javaChannel());
 
         try {
             if (ch != null) {
+                // 将 jdk 的 channel 包装成 netty NioSocketChannel 并添加到 容器中
                 buf.add(new NioSocketChannel(this, ch));
                 return 1;
             }

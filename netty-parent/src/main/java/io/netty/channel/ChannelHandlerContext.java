@@ -121,6 +121,10 @@ import java.nio.channels.Channels;
  * {@link ChannelPipeline} to find out more about inbound and outbound operations,
  * what fundamental differences they have, how they flow in a  pipeline,  and how to handle
  * the operation in your application.
+ *
+ * ChannelInboundInvoker、ChannelOutboundInvoker 这两个 invoker 针对入站或出站的 handler 再包装一层，已达到在方法前后拦截并做一些特定的操作
+ * ChannelHandlerContext 除继承 ChannelInboundInvoker、ChannelOutboundInvoker 的方法外，
+ *  还自定义了一些方法 用于获取 Context 上下文环境，如 channel、executor、handler、pipline、内存分配器等信息
  */
 public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvoker, ChannelOutboundInvoker {
 

@@ -18,12 +18,13 @@ package io.netty.channel;
 import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
- * Special {@link EventExecutorGroup} which allows registering {@link Channel}s that get
+ * Special {@link /} which allows registering {@link Channel}s that get
  * processed for later selection during the event loop.
  *
  */
 public interface EventLoopGroup extends EventExecutorGroup {
     /**
+     * EventLoopGroup 提供 next 接口可以从组中按照一定规则获取一个 EventLoop 来执行任务
      * Return the next {@link EventLoop} to use
      */
     @Override

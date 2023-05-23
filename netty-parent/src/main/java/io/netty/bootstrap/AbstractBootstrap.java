@@ -53,7 +53,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     @SuppressWarnings("deprecation")
     private volatile ChannelFactory<? extends C> channelFactory;
     private volatile SocketAddress localAddress;
-    private final Map<ChannelOption<?>, Object> options = new LinkedHashMap<ChannelOption<?>, Object>();
+    private final Map<ChannelOption<?>, Object> options = new LinkedHashMap<ChannelOption<?>, Object>(); // option 为 boosGroup EventLoop 设置参数
     private final Map<AttributeKey<?>, Object> attrs = new LinkedHashMap<AttributeKey<?>, Object>();
     private volatile ChannelHandler handler;
 
@@ -98,6 +98,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * The {@link Class} which is used to create {@link Channel} instances from.
      * You either use this or {@link #channelFactory(io.netty.channel.ChannelFactory)} if your
      * {@link Channel} implementation has no no-args constructor.
+     *
+     * channel 方法根据传入的 NioServerSocketChannel.class 创建对应的 channel对象
      */
     public B channel(Class<? extends C> channelClass) {
         if (channelClass == null) {
@@ -166,12 +168,17 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     /**
      * Allow to specify a {@link ChannelOption} which is used for the {@link Channel} instances once they got
      * created. Use a value of {@code null} to remove a previous set {@link ChannelOption}.
+     *
+     * option 为 boosGroup EventLoop 设置参数
+     * childOption 位 workGroup EventLoop 设置参数
+     *
      */
     public <T> B option(ChannelOption<T> option, T value) {
         if (option == null) {
             throw new NullPointerException("option");
         }
         if (value == null) {
+            // LinkedHashMap   使用 synchronized
             synchronized (options) {
                 options.remove(option);
             }
@@ -248,6 +255,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
     /**
      * Create a new {@link Channel} and bind it.
+     *
+     * bind 方法，服务器在 bind 方法中完成启动
      */
     public ChannelFuture bind(int inetPort) {
         return bind(new InetSocketAddress(inetPort));
@@ -279,7 +288,11 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+
+        // step 1
         final ChannelFuture regFuture = initAndRegister();
+
+
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
             return regFuture;
@@ -288,6 +301,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
+
+            // step 2
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
@@ -317,8 +332,18 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            // 通过 ServerBoostrap 的 ReflectiveChannelFactory 工厂反射创建 NioServerSocketChannel
+            // 通过 Nio 的 SelectorProvider 的 openServerSocketChannel 方法获取到 JDK 的 channel，然后包装成 netty 的 channel
+            // 创建一个唯一的 channelId
+            // 创建一个 NioMessageUnsafe,用于操作消息
+            // 创建一个 DefaultChannelPipeline 管道，本质是一个双向链表，用于过滤消息
+            // 创建一个 NioServerSocketChannelConfig 对象，用于对外展示配置
             channel = channelFactory.newChannel();
-            init(channel);
+
+            // 设置 NioServerSocketChannel 的 tcp 属性 使用同步方法 因为 LinkedHashMap 非线程安全
+            // 对 NioServerSocketChannel 的 ChannelPipline 添加 ChannelInitializer 处理器
+            init(channel); // 初始化 channel
+
         } catch (Throwable t) {
             if (channel != null) {
                 // channel can be null if newChannel crashed (eg SocketException("too many open files"))
@@ -329,7 +354,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
-
+        // 注册 NioServerSocketChannel
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

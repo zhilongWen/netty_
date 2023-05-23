@@ -90,6 +90,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private boolean registered;
 
     protected DefaultChannelPipeline(Channel channel) {
+        // 初始化 DefaultChannelPipeline 双向链表
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
@@ -205,15 +206,23 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            // 检查 handler 是否是共享的，如果不是且已经被其他 pipline 使用 则抛出异常
             checkMultiplicity(handler);
 
+            // 创建 AbstractChannelHandlerContext
+            // ChannelHandlerContext 是 ChannelHander 和 ChannelPipline 之间的关联
+            // 每当有 ChannelHandler 添加到 Pipline 中时都会创建 context
             newCtx = newContext(group, filterName(name, handler), handler);
 
+            // 将 Context 添加到链表中
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventloop yet.
             // In this case we add the context to the pipeline and add a task that will call
             // ChannelHandler.handlerAdded(...) once the channel is registered.
+            // 判断 channel 是否注册到 selector 上
+            // 没有这会在 io.netty.bootstrap.AbstractBootstrap#initAndRegister 方法中注册
+            // ChannelFuture regFuture = config().group().register(channel);
             if (!registered) {
                 newCtx.setAddPending();
                 callHandlerCallbackLater(newCtx, true);
@@ -232,6 +241,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 return this;
             }
         }
+
+        // 同步或异步执行 callHandlerAdded0
         callHandlerAdded0(newCtx);
         return this;
     }
@@ -1462,7 +1473,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         void execute() {
             EventExecutor executor = ctx.executor();
             if (executor.inEventLoop()) {
-                callHandlerAdded0(ctx);
+                callHandlerAdded0(ctx); // 回调 handler 方法
             } else {
                 try {
                     executor.execute(this);

@@ -70,6 +70,7 @@ public class DefaultChannelConfig implements ChannelConfig {
     }
 
     protected DefaultChannelConfig(Channel channel, RecvByteBufAllocator allocator) {
+        // channel 设置缓存大小
         setRecvByteBufAllocator(allocator, channel.metadata());
         this.channel = channel;
     }
@@ -309,7 +310,7 @@ public class DefaultChannelConfig implements ChannelConfig {
      * is of type {@link MaxMessagesRecvByteBufAllocator}.
      */
     private void setRecvByteBufAllocator(RecvByteBufAllocator allocator, ChannelMetadata metadata) {
-        if (allocator instanceof MaxMessagesRecvByteBufAllocator) {
+        if (allocator instanceof MaxMessagesRecvByteBufAllocator) { // 配置处理数据单条的最大大小
             ((MaxMessagesRecvByteBufAllocator) allocator).maxMessagesPerRead(metadata.defaultMaxMessagesPerRead());
         } else if (allocator == null) {
             throw new NullPointerException("allocator");

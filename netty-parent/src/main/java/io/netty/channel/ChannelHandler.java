@@ -176,6 +176,9 @@ import java.lang.annotation.Target;
  * {@link ChannelPipeline} to find out more about inbound and outbound operations,
  * what fundamental differences they have, how they flow in a  pipeline,  and how to handle
  * the operation in your application.
+ *
+ * ChannelHandler 的作用是处理 I/O 事件，并将其转发给下一个 ChannelHandler 处理
+ * handler 处理事件分为入站和出站，两个方向的操作都是不同的
  */
 public interface ChannelHandler {
 

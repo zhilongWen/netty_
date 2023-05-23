@@ -761,10 +761,13 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             throw new NullPointerException("task");
         }
 
+        // 判断是否为当前线程
         boolean inEventLoop = inEventLoop();
         if (inEventLoop) {
+            // 如果是当前线程直接加入队列
             addTask(task);
         } else {
+            // 如果不是则 启动该线程 并将任务提交到队列（io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueue）
             startThread();
             addTask(task);
             if (isShutdown() && removeTask(task)) {
@@ -858,8 +861,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private static final long SCHEDULE_PURGE_INTERVAL = TimeUnit.SECONDS.toNanos(1);
 
     private void startThread() {
-        if (state == ST_NOT_STARTED) {
-            if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
+        if (state == ST_NOT_STARTED) { // ST_NOT_STARTED = 1;
+            if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) { // ST_STARTED = 2;
+                // 将当前线程状态修改为 start 并启动
                 try {
                     doStartThread();
                 } catch (Throwable cause) {
@@ -875,19 +879,37 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         executor.execute(new Runnable() {
             @Override
             public void run() {
+                // executor 为 EventLoop 创建的时的 ThreadPerTaskExecutor
+                // ThreadPerTaskExecutor 的  execute 方法将 Runnable 包装成 FastThreadLocalRunnable
                 thread = Thread.currentThread();
+
+                // 判断线程中断状态
                 if (interrupted) {
                     thread.interrupt();
                 }
 
                 boolean success = false;
+
+                //设置最后一次执行时间
                 updateLastExecutionTime();
                 try {
+
+                    // 启动线程
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {
                     logger.warn("Unexpected exception from an event executor: ", t);
                 } finally {
+
+                    /*
+                        CAS 不断修改 state 的状态为 ST_SHUTTING_DOWN
+                        确认线程是否关闭
+
+                        然后执行 cleanup() 方法 更新线程状态
+
+                        ST_TERMINATED 释放当前线程，并打印队列中还有多少未完成的任务
+
+                    */
                     for (;;) {
                         int oldState = state;
                         if (oldState >= ST_SHUTTING_DOWN || STATE_UPDATER.compareAndSet(

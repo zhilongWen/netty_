@@ -212,6 +212,41 @@ import java.util.NoSuchElementException;
  * A {@link ChannelHandler} can be added or removed at any time because a {@link ChannelPipeline} is thread safe.
  * For example, you can insert an encryption handler when sensitive information is about to be exchanged, and remove it
  * after the exchange.
+ *
+ *<pre>
+ * 每当 ServerSocket 创建一个新连接，就会创建一个 Socket 对应目标客户端
+ * 每一个新的 Socket 都会分配一个全新的 ChannelPipeline
+ * 每个 ChannelPipeline 内部包含多个 ChannelHandlerContext
+ * 它们一起组成双端链表，这些 ChannelHandlerContext 用于包装 ChannelHandler
+ *
+ * <pre>
+ *               +----------------------------------------------------------------------------------------------------+
+ *               |  ChannelPipeline                                                                                   |
+ *               |                                                                                                    |
+ *               |  +-----------------------+          +-----------------------+         +-----------------------+    |
+ *               |  | ChannelHandlerContext |          | ChannelHandlerContext |         |                       |    |
+ *               |  |                       | ------>  |                       | ------> |                       |    |
+ *               |  |  +----------------+   |          | +----------------+    |         |     ...               |    |
+ * Socket -----> |  |  | ChannelHandler |   |          | | ChannelHandler |    |         |                       |    |
+ *               |  |  +----------------+   | <------  | +----------------+    | <------ |                       |    |
+ *               |  |                       |          |                       |         |                       |    |
+ *               |  +-----------------------+          +-----------------------+         +-----------------------+    |
+ *               |                                                                                                    |
+ *               |                                                                                                    |
+ *               |                                                                                                    |
+ *               +----------------------------------------------------------------------------------------------------+
+ *
+ * </pre>
+ *
+ *
+ * ChannelPipeline 继承 inBound、outBound、iterable 接口，这使得其即可以 调用数据出站也可以调用数据入站同时还能遍历链表
+ *
+ * handler  用于处理入站和出站事件，pipline 就是一个过滤器，可以通过 pipline 来控制事件如何处理以及 handler 在 pipline 中如何交互
+ * I/O 事件由 Inbound Handler 或  Outbound Handler 处理，并通过调用 ChannelHandlerContext 的 fireChannelRead 方法将事件转发给最近的处理程序
+ * 入站事件由入站处理程序自下而上处理，入站处理通常由底部的 I/O 线程 生成入站数据，通常出 SocketChannel.read(ByteBuffer) 获取
+ * 一个 pipline 通常有多个 handler
+ * decode handler -> compute handler -> encod handler
+ *
  */
 public interface ChannelPipeline
         extends ChannelInboundInvoker, ChannelOutboundInvoker, Iterable<Entry<String, ChannelHandler>> {

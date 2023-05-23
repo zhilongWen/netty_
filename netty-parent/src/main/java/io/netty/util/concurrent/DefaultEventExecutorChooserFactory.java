@@ -67,6 +67,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
         @Override
         public EventExecutor next() {
+            // 轮询 EventLoopGroup 中的 EventLoop
             return executors[Math.abs(idx.getAndIncrement() % executors.length)];
         }
     }

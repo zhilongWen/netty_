@@ -31,6 +31,7 @@ public class NettyServer {
         try {
 
             // 创建 boosGroup 一直循环只处理连接请求，真正的业务交由 workGroup 处理
+            // 内部是一个一个的 NioEventLoop
             boosGroup = new NioEventLoopGroup(1);
 
             // 创建 workGroup 处理 read write 事件

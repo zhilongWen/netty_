@@ -21,6 +21,7 @@ import io.netty.channel.ChannelOutboundBuffer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.io.IOException;
 import java.net.PortUnreachableException;
@@ -61,8 +62,18 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
 
         @Override
         public void read() {
+
+//            1.检测是否是当前线程
+//            2.执行doReadMessages(readBuf) 传入一个 list 容器
+//            3.doReadMessages 读取 boos 线程中的 NioServerSocketChannel 介绍到的请求，并将请求放入容器中
+//            4.循环遍历容器中的所有请求，通过 pipline 的 fireChannelRead 方法执行 handler 的 ChannelRead
+
+
+            // 判断是否是当前线程
             assert eventLoop().inEventLoop();
+            // 获取 channel 配置
             final ChannelConfig config = config();
+            // 获取 pipline
             final ChannelPipeline pipeline = pipeline();
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
             allocHandle.reset(config);
@@ -72,6 +83,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        // 通过 ServerSocket 的 accept 方法获取到 tcp 连接，
+                        // 然后封装成 netty 的 NioSocketChannel 对象，最后添加到容器中
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
@@ -90,6 +103,9 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+
+                    // 将 jdk 的 channel 包装成 netty NioSocketChannel 并添加到 容器中
+                    // pipline 中有我们添加的所有 handler headContext ... serverBootstrap ...  tailContext
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();

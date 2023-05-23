@@ -81,8 +81,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();
-        unsafe = newUnsafe();
-        pipeline = newChannelPipeline();
+        unsafe = newUnsafe(); // 通过 io.netty.channel.nio.AbstractNioMessageChannel 创建一个 io.netty.channel.nio.AbstractNioMessageChannel.NioMessageUnsafe
+        pipeline = newChannelPipeline(); // 创建 ChannelPipeline 初始化双向链表
     }
 
     /**
@@ -115,6 +115,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      * Returns a new {@link DefaultChannelPipeline} instance.
      */
     protected DefaultChannelPipeline newChannelPipeline() {
+        // 创建 ChannelPipeline 初始化双向链表
         return new DefaultChannelPipeline(this);
     }
 
@@ -501,7 +502,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
-                doRegister();
+                doRegister(); // 开始注册 channel
                 neverRegistered = false;
                 registered = true;
 

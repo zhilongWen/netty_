@@ -73,14 +73,18 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {
+            // 设置默认的线程工厂
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
+        // private final EventExecutor[] children;
+        // 创建 EventLoop 数组
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
+                // 创建 NioEventLoop
                 children[i] = newChild(executor, args);
                 success = true;
             } catch (Exception e) {
@@ -89,6 +93,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             } finally {
                 if (!success) {
                     for (int j = 0; j < i; j ++) {
+                        // 如果出现异常则关闭 EventLoop
                         children[j].shutdownGracefully();
                     }
 
@@ -119,6 +124,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         };
 
+        // 给所有的 NioEventLoop 添加结束的监听器
         for (EventExecutor e: children) {
             e.terminationFuture().addListener(terminationListener);
         }

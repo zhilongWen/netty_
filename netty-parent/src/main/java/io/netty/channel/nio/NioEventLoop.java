@@ -52,6 +52,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link SingleThreadEventLoop} implementation which register the {@link Channel}'s to a
  * {@link Selector} and so does the multi-plexing of these in the event loop.
  *
+ * 通过 NioEventLoop 类继承关系可知
+ * ScheduledExecutorServer 定时任务接口，表示 EventLoop 可以接受定时任务
+ * SingleThreadEventExecutor 表示每个 EventLoop 是一个 单独的线程池
+ *
+ *
+ * EventLoop 是一个单列的线程池，主要做 3 件事：监听端口，处理端口事件，处理队列事件
+ *
  */
 public final class NioEventLoop extends SingleThreadEventLoop {
 
@@ -116,7 +123,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     /**
      * The NIO {@link Selector}.
      */
-    private Selector selector;
+    private Selector selector; // NioEventLoop selector   java.nio.channels.Selector 使用的是 java nio selector
     private Selector unwrappedSelector;
     private SelectedSelectionKeySet selectedKeys;
 
@@ -146,6 +153,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new NullPointerException("selectStrategy");
         }
         provider = selectorProvider;
+
+        // 获取 Selector
         final SelectorTuple selectorTuple = openSelector();
         selector = selectorTuple.selector;
         unwrappedSelector = selectorTuple.unwrappedSelector;
@@ -168,19 +177,20 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private SelectorTuple openSelector() {
-        final Selector unwrappedSelector;
+        final Selector unwrappedSelector; // WindowsSelectorProvider
         try {
             unwrappedSelector = provider.openSelector();
         } catch (IOException e) {
             throw new ChannelException("failed to open a new selector", e);
         }
 
-        if (DISABLE_KEYSET_OPTIMIZATION) {
+        if (DISABLE_KEYSET_OPTIMIZATION) { // DISABLE_KEYSET_OPTIMIZATION 默认值为 false
+            // 通过 WindowsSelectorProvider 获取 SelectorTuple 从而得到一个 Selector
             return new SelectorTuple(unwrappedSelector);
         }
-
+        // 就是一个 SelectionKey 数组默认初始值大小为 1024
         final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet();
-
+        // maybeSelectorImplClass = sun.nio.ch.SelectorImpl
         Object maybeSelectorImplClass = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
@@ -222,7 +232,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     if (cause != null) {
                         return cause;
                     }
-
+                    // 通过反射获取 java nio SelectorImpl 中的 selectedKeys 和 publicSelectedKeys
+                    // 将 unwrappedSelector 值赋值给 selectedKeys 和 publicSelectedKeys
                     selectedKeysField.set(unwrappedSelector, selectedKeySet);
                     publicSelectedKeysField.set(unwrappedSelector, selectedKeySet);
                     return null;
@@ -406,6 +417,10 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     case SelectStrategy.CONTINUE:
                         continue;
                     case SelectStrategy.SELECT:
+                        // 监听端口
+//                        调用 selector 方法，默认阻塞 1s
+//                        如果有定时任务，则在剩余的时间基础上再加上 0.5s 进行阻塞
+//                        当执行 execute 方法时，也就是添加任务的时候就会唤醒 selector 防止 selector 阻塞的时间过长
                         select(wakenUp.getAndSet(false));
 
                         // 'wakenUp.compareAndSet(false, true)' is always evaluated
@@ -448,9 +463,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 final int ioRatio = this.ioRatio;
                 if (ioRatio == 100) {
                     try {
+                        // 处理端口事件
                         processSelectedKeys();
                     } finally {
                         // Ensure we always run tasks.
+                        // 处理队列事件
                         runAllTasks();
                     }
                 } else {
@@ -460,6 +477,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     } finally {
                         // Ensure we always run tasks.
                         final long ioTime = System.nanoTime() - ioStartTime;
+
+                        // 处理任务
                         runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 }
@@ -574,6 +593,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // See https://github.com/netty/netty/issues/2363
             selectedKeys.keys[i] = null;
 
+            // 获取共享数据
             final Object a = k.attachment();
 
             if (a instanceof AbstractNioChannel) {
@@ -620,7 +640,14 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
 
         try {
+
+            // 1 read
+            // 2 write
+            // 8 op_connect
+            // 16 op_accept
             int readyOps = k.readyOps();
+
+
             // We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise
             // the NIO JDK channel implementation may throw a NotYetConnectedException.
             if ((readyOps & SelectionKey.OP_CONNECT) != 0) {
@@ -641,7 +668,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
             // to a spin loop
+            // 处理 16 accept 事件
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
+                // 读取 boosGroup 的 NioServerSocketChannel 数据
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {
@@ -750,9 +779,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     break;
                 }
 
+                // 默认阻塞 1s
                 int selectedKeys = selector.select(timeoutMillis);
                 selectCnt ++;
 
+                // 1s 后返回，         有返回值 || select 被用户唤醒 || 任务队列有任务 || 有定时任务将被调用
+                // 否则退出循环
                 if (selectedKeys != 0 || oldWakenUp || wakenUp.get() || hasTasks() || hasScheduledTasks()) {
                     // - Selected something,
                     // - waken up by user, or

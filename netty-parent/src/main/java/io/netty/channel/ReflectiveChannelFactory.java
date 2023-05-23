@@ -25,6 +25,8 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 
     private final Class<? extends T> clazz;
 
+    // 创建一个 channel 反射类工厂 ReflectiveChannelFactory
+    // ServerBootstrap channel 设置是创建
     public ReflectiveChannelFactory(Class<? extends T> clazz) {
         if (clazz == null) {
             throw new NullPointerException("clazz");
@@ -32,6 +34,7 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
         this.clazz = clazz;
     }
 
+    // io.netty.bootstrap.AbstractBootstrap.initAndRegister 调用
     @Override
     public T newChannel() {
         try {

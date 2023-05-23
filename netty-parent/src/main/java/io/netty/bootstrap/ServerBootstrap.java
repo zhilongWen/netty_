@@ -39,12 +39,16 @@ import java.util.concurrent.TimeUnit;
 /**
  * {@link Bootstrap} sub-class which allows easy bootstrap of {@link ServerChannel}
  *
+ * ServerBootstrap 与 Bootstrap 都是 AbstractBootstrap 的子类
+ * AbstractBootstrap  的主要作用是配置 Netty 程序，串联各个组件
+ * Bootstrap 客户端启动引导类
+ * ServerBootstrap  服务端启动引导类
  */
 public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerChannel> {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(ServerBootstrap.class);
 
-    private final Map<ChannelOption<?>, Object> childOptions = new LinkedHashMap<ChannelOption<?>, Object>();
+    private final Map<ChannelOption<?>, Object> childOptions = new LinkedHashMap<ChannelOption<?>, Object>(); // childOption 位 workGroup EventLoop 设置参数
     private final Map<AttributeKey<?>, Object> childAttrs = new LinkedHashMap<AttributeKey<?>, Object>();
     private final ServerBootstrapConfig config = new ServerBootstrapConfig(this);
     private volatile EventLoopGroup childGroup;
@@ -76,6 +80,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
      * Set the {@link EventLoopGroup} for the parent (acceptor) and the child (client). These
      * {@link EventLoopGroup}'s are used to handle all the events and IO for {@link ServerChannel} and
      * {@link Channel}'s.
+     *
+     * group 方法将 boosGroup，workGroup 分别赋值给 parentGroup、childGroup
+     *
      */
     public ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
         super.group(parentGroup);
@@ -139,7 +146,11 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     @Override
     void init(Channel channel) throws Exception {
+
+        //获取 tcp 的配置信息
         final Map<ChannelOption<?>, Object> options = options0();
+
+        // 设置channel 的配置信息
         synchronized (options) {
             setChannelOptions(channel, options, logger);
         }
@@ -153,6 +164,8 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             }
         }
 
+
+        //获取 ChannelPipline -> DefaultChannelPipeline
         ChannelPipeline p = channel.pipeline();
 
         final EventLoopGroup currentChildGroup = childGroup;
@@ -166,7 +179,12 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
         }
 
-        p.addLast(new ChannelInitializer<Channel>() {
+
+        // ChannelPipline 添加 ChannelInitializer 处理器
+        // io.netty.channel.DefaultChannelPipeline.addLast(io.netty.channel.ChannelHandler...)
+        p.addLast(
+                // 在 io.netty.channel.ChannelInitializer.initChannel(io.netty.channel.ChannelHandlerContext) 方法中初始化
+                new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) throws Exception {
                 final ChannelPipeline pipeline = ch.pipeline();
@@ -175,6 +193,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);
                 }
 
+                // 放入线程池中异步执行
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
@@ -241,10 +260,14 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
+
+            // 获取到 NioSocketChannel
             final Channel child = (Channel) msg;
 
+            // 添加 NioSocketChannel 的 pipline 的 handler
             child.pipeline().addLast(childHandler);
 
+            // 设置 channel 的属性
             setChannelOptions(child, childOptions, logger);
 
             for (Entry<AttributeKey<?>, Object> e: childAttrs) {
@@ -252,6 +275,8 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             }
 
             try {
+                // ！！！！ 将 NioSocketChannel 注册到 childGroup(workerGroup) 中的 EventLoop 上 并为其添加一个监听器
+                // sun.nio.ch.WindowsSelectorImpl#implRegister
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
