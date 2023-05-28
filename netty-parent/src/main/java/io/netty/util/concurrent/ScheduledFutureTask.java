@@ -102,6 +102,8 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
         }
 
         ScheduledFutureTask<?> that = (ScheduledFutureTask<?>) o;
+
+        // 比较两个任务的截止时间，大的在后面小的在前面，因此任务中第一个任务必定截止时间最小的
         long d = deadlineNanos() - that.deadlineNanos();
         if (d < 0) {
             return -1;

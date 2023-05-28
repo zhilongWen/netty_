@@ -73,7 +73,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {
-            // 设置默认的线程工厂
+            // 设置默认的线程工厂，每次执行任务都会创建一个线程实体
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
@@ -85,7 +85,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             boolean success = false;
             try {
                 // 创建 NioEventLoop
-                children[i] = newChild(executor, args);
+                children[i] = newChild(executor, args); // executor = ThreadPerTaskExecutor
                 success = true;
             } catch (Exception e) {
                 // TODO: Think about if this is a good exception type
@@ -113,6 +113,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        // chooser 的作用给新连接绑定 NioEventLoop，对应的方法是 io.netty.util.concurrent.MultithreadEventExecutorGroup.next()
         chooser = chooserFactory.newChooser(children);
 
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {

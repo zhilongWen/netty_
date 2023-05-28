@@ -11,6 +11,7 @@ public class MM {
 
         System.out.println(0 | 16);
 
+        System.out.println((64 & -64) == 64);
     }
 
 }

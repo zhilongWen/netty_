@@ -24,7 +24,7 @@ public class NettyServer {
         try {
 
             boosGroup = new NioEventLoopGroup(1); // server 线程
-            workGroup = new NioEventLoopGroup(4); // client 线程（子线程）
+            workGroup = new NioEventLoopGroup(); // client 线程（子线程）
 
             ServerBootstrap serverBootstrap = new ServerBootstrap();
 

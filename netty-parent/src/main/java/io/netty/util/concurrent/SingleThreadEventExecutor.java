@@ -161,8 +161,14 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         super(parent);
         this.addTaskWakesUp = addTaskWakesUp;
         this.maxPendingTasks = Math.max(16, maxPendingTasks);
+
+        // 保存线程执行器 ThreadPerTaskExecutor，用于后续创建 NioEventLoop 底层线程
         this.executor = ObjectUtil.checkNotNull(executor, "executor");
-        taskQueue = newTaskQueue(this.maxPendingTasks);
+
+        // taskQueue 主要用在外部线程在执行 Netty 的任务时，如果判断不是在 NioEventLoopGroup 对应的现在中执行，
+        // 而是直接塞到一个任务的队列里面，然后由 NioEventLoopGroup 的一个线程去执行
+        // 外部的线程将任务扔到队列中，通过一个线程去执行
+        taskQueue = newTaskQueue(this.maxPendingTasks); // newMpscQueue
         rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, "rejectedHandler");
     }
 
@@ -271,14 +277,21 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     private boolean fetchFromScheduledTaskQueue() {
+
+        // 获取定时任务的截止时间
         long nanoTime = AbstractScheduledEventExecutor.nanoTime();
+        // 获取定时任务
         Runnable scheduledTask  = pollScheduledTask(nanoTime);
+
         while (scheduledTask != null) {
-            if (!taskQueue.offer(scheduledTask)) {
+
+            if (!taskQueue.offer(scheduledTask)) { // 将定时任务放入普通的任务队列中 MscpQueue
                 // No space left in the task queue add it back to the scheduledTaskQueue so we pick it up again.
+                // 添加失败，重新放入优先队列中
                 scheduledTaskQueue().add((ScheduledFutureTask<?>) scheduledTask);
                 return false;
             }
+            // 取出下一个任务
             scheduledTask  = pollScheduledTask(nanoTime);
         }
         return true;
@@ -390,26 +403,37 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
+
+        // 从定时任务队列中聚合任务
         fetchFromScheduledTaskQueue();
+
+        // 从不同的 taskQueue 中获取任务
         Runnable task = pollTask();
+
         if (task == null) {
             afterRunningAllTasks();
             return false;
         }
 
+        // 计算截止时间
         final long deadline = ScheduledFutureTask.nanoTime() + timeoutNanos;
+
         long runTasks = 0;
         long lastExecutionTime;
         for (;;) {
+
+            // 执行任务
             safeExecute(task);
 
+            // 标记当前跑完任务的个数
             runTasks ++;
 
             // Check timeout every 64 tasks because nanoTime() is relatively expensive.
             // XXX: Hard-coded value - will make it configurable if it is really a problem.
-            if ((runTasks & 0x3F) == 0) {
+            if ((runTasks & 0x3F) == 0) { // 没执行 64 个任务判断一下当前时间是否超过截止时间
                 lastExecutionTime = ScheduledFutureTask.nanoTime();
                 if (lastExecutionTime >= deadline) {
+                    // 如果超过则不再执行了
                     break;
                 }
             }
@@ -761,15 +785,21 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             throw new NullPointerException("task");
         }
 
-        // 判断是否为当前线程
-        boolean inEventLoop = inEventLoop();
+        // 判断当前执行的线程是否是 NioEventLoop 线程，刚启动这里的线程应该是 main 线程
+        boolean inEventLoop = inEventLoop(); // false
+
         if (inEventLoop) {
             // 如果是当前线程直接加入队列
             addTask(task);
         } else {
+
             // 如果不是则 启动该线程 并将任务提交到队列（io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueue）
             startThread();
+
+            // 将任务添加到 task
             addTask(task);
+
+
             if (isShutdown() && removeTask(task)) {
                 reject();
             }
@@ -861,10 +891,13 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private static final long SCHEDULE_PURGE_INTERVAL = TimeUnit.SECONDS.toNanos(1);
 
     private void startThread() {
+        // 判断当前线程是否是未启动的
         if (state == ST_NOT_STARTED) { // ST_NOT_STARTED = 1;
+            // 通过 cas 启动当前线程
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) { // ST_STARTED = 2;
                 // 将当前线程状态修改为 start 并启动
                 try {
+                    // 启动线程
                     doStartThread();
                 } catch (Throwable cause) {
                     STATE_UPDATER.set(this, ST_NOT_STARTED);
@@ -876,6 +909,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void doStartThread() {
         assert thread == null;
+
+        // executor = ThreadPerTaskExecutor
         executor.execute(new Runnable() {
             @Override
             public void run() {

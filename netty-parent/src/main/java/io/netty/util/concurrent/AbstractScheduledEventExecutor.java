@@ -102,13 +102,18 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
         assert inEventLoop();
 
         Queue<ScheduledFutureTask<?>> scheduledTaskQueue = this.scheduledTaskQueue;
+
+        // 取出优先队列中的第一个任务
         ScheduledFutureTask<?> scheduledTask = scheduledTaskQueue == null ? null : scheduledTaskQueue.peek();
         if (scheduledTask == null) {
             return null;
         }
 
+        // 如果任务的截止事件 <= 传入的截止时间
         if (scheduledTask.deadlineNanos() <= nanoTime) {
+            // 从队列中删除
             scheduledTaskQueue.remove();
+            // 将任务返回，等待处理
             return scheduledTask;
         }
         return null;
@@ -202,9 +207,12 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
     }
 
     <V> ScheduledFuture<V> schedule(final ScheduledFutureTask<V> task) {
+
+        // 判断是否是当前 NioEventLoop 发起的定时任务还是外部线程发起的定时任务
         if (inEventLoop()) {
             scheduledTaskQueue().add(task);
         } else {
+            // 外部线程
             execute(new Runnable() {
                 @Override
                 public void run() {

@@ -68,7 +68,7 @@ public class DefaultThreadFactory implements ThreadFactory {
             throw new NullPointerException("poolType");
         }
 
-        String poolName = StringUtil.simpleClassName(poolType);
+        String poolName = StringUtil.simpleClassName(poolType); // poolName = NioEventLoop
         switch (poolName.length()) {
             case 0:
                 return "unknown";
@@ -76,7 +76,7 @@ public class DefaultThreadFactory implements ThreadFactory {
                 return poolName.toLowerCase(Locale.US);
             default:
                 if (Character.isUpperCase(poolName.charAt(0)) && Character.isLowerCase(poolName.charAt(1))) {
-                    return Character.toLowerCase(poolName.charAt(0)) + poolName.substring(1);
+                    return Character.toLowerCase(poolName.charAt(0)) + poolName.substring(1); // nioEventLoop
                 } else {
                     return poolName;
                 }
@@ -84,6 +84,9 @@ public class DefaultThreadFactory implements ThreadFactory {
     }
 
     public DefaultThreadFactory(String poolName, boolean daemon, int priority, ThreadGroup threadGroup) {
+
+        // poolName = nioEventLoop
+
         if (poolName == null) {
             throw new NullPointerException("poolName");
         }
@@ -92,7 +95,7 @@ public class DefaultThreadFactory implements ThreadFactory {
                     "priority: " + priority + " (expected: Thread.MIN_PRIORITY <= priority <= Thread.MAX_PRIORITY)");
         }
 
-        prefix = poolName + '-' + poolId.incrementAndGet() + '-';
+        prefix = poolName + '-' + poolId.incrementAndGet() + '-'; // nioEventLoop-1-
         this.daemon = daemon;
         this.priority = priority;
         this.threadGroup = threadGroup;
@@ -105,7 +108,7 @@ public class DefaultThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread t = newThread(FastThreadLocalRunnable.wrap(r), prefix + nextId.incrementAndGet());
+        Thread t = newThread(FastThreadLocalRunnable.wrap(r), prefix + nextId.incrementAndGet()); // nioEventLoop-1-0
         try {
             if (t.isDaemon() != daemon) {
                 t.setDaemon(daemon);
@@ -121,6 +124,9 @@ public class DefaultThreadFactory implements ThreadFactory {
     }
 
     protected Thread newThread(Runnable r, String name) {
+
+        // Netty 底层的 Thread 是自己封装的 FastThreadLocalThread
+
         return new FastThreadLocalThread(threadGroup, r, name);
     }
 }
