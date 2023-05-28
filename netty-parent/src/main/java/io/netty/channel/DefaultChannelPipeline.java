@@ -1408,8 +1408,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            ctx.fireChannelActive();
+            ctx.fireChannelActive();  // 绑定完端口后，传播 active 方法
 
+            // 设置读取 accept 事件
             readIfIsAutoRead();
         }
 
@@ -1432,6 +1433,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         private void readIfIsAutoRead() {
             if (channel.config().isAutoRead()) {
+                // 传播 read 事件
                 channel.read();
             }
         }

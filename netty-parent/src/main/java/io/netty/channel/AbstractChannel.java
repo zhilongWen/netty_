@@ -514,7 +514,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
-                if (isActive()) {
+                if (isActive()) { // 这里的 isActive 返回的 false，fireChannelActive 是在绑定过程触发
                     if (firstRegistration) {
                         pipeline.fireChannelActive();
                     } else if (config().isAutoRead()) {
@@ -554,20 +554,22 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                         "address (" + localAddress + ") anyway as requested.");
             }
 
-            boolean wasActive = isActive();
+            boolean wasActive = isActive(); // 绑定前 isActive() 方法返回 false
             try {
-                doBind(localAddress);
+                // io.netty.channel.socket.nio.NioServerSocketChannel.doBind
+                doBind(localAddress); // 调用 JDK 底层的绑定
             } catch (Throwable t) {
                 safeSetFailure(promise, t);
                 closeIfClosed();
                 return;
             }
 
-            if (!wasActive && isActive()) {
+            if (!wasActive && isActive()) { // 绑定后 isActive() 方法返回 true
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        pipeline.fireChannelActive();
+                        // io.netty.channel.DefaultChannelPipeline.HeadContext.channelActive
+                        pipeline.fireChannelActive();  // 传播事件，触发 handler 的 active
                     }
                 });
             }
@@ -845,12 +847,19 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             try {
+                // 传播 read 方法
                 doBeginRead();
+
+
+
+
+
+
             } catch (final Exception e) {
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        pipeline.fireExceptionCaught(e);
+                        pipeline.fireExceptionCaught(e); // 传播异常事件
                     }
                 });
                 close(voidPromise());

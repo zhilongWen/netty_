@@ -498,6 +498,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     private void invokeBind(SocketAddress localAddress, ChannelPromise promise) {
         if (invokeHandler()) {
             try {
+                // io.netty.channel.DefaultChannelPipeline.HeadContext.bind
                 ((ChannelOutboundHandler) handler()).bind(this, localAddress, promise);
             } catch (Throwable t) {
                 notifyOutboundHandlerException(t, promise);
@@ -677,6 +678,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
                 next.invokeReadTask = task = new Runnable() {
                     @Override
                     public void run() {
+                        //传播 read 方法
                         next.invokeRead();
                     }
                 };

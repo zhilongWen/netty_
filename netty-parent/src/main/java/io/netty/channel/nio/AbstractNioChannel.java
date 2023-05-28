@@ -83,7 +83,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
         super(parent);
         this.ch = ch;
-        this.readInterestOp = readInterestOp;
+        this.readInterestOp = readInterestOp; // SelectionKey.OP_ACCEPT = 16
         try {
             ch.configureBlocking(false);
         } catch (IOException e) {
@@ -409,16 +409,16 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     @Override
     protected void doBeginRead() throws Exception {
         // Channel.read() or ChannelHandlerContext.read() was called
-        final SelectionKey selectionKey = this.selectionKey;
+        final SelectionKey selectionKey = this.selectionKey; // 获取所有有事件的 channel
         if (!selectionKey.isValid()) {
             return;
         }
 
         readPending = true;
 
-        final int interestOps = selectionKey.interestOps();
-        if ((interestOps & readInterestOp) == 0) {
-            selectionKey.interestOps(interestOps | readInterestOp);
+        final int interestOps = selectionKey.interestOps(); // 初始化是 selector 绑定的事件是 0，因此这里获取到的 interestOps = 0
+        if ((interestOps & readInterestOp) == 0) { // 这里的 readInterestOp 是 accept 事件 = 16
+            selectionKey.interestOps(interestOps | readInterestOp); // 注册 accept 事件 ： 0 | 16 = 16 = accept
         }
     }
 

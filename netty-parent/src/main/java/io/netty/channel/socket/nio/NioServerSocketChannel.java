@@ -48,6 +48,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioServerSocketChannel.class);
 
+    // java.nio.channels.ServerSocketChannel
     private static ServerSocketChannel newSocket(SelectorProvider provider) {
         try {
             /**
@@ -141,7 +142,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     }
 
     @Override
-    protected int doReadMessages(List<Object> buf) throws Exception {
+        protected int doReadMessages(List<Object> buf) throws Exception {
 
         // 通过 SocketUtils 工具类 调用 ServerSocketChannel 的 accept 方法 获取 tcp 连接
         SocketChannel ch = SocketUtils.accept(javaChannel());

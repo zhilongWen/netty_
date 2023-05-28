@@ -671,6 +671,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // 处理 16 accept 事件
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 // 读取 boosGroup 的 NioServerSocketChannel 数据
+                // alt + ctrl + b
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {

@@ -298,7 +298,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return regFuture;
         }
 
-        if (regFuture.isDone()) {
+        if (regFuture.isDone()) { // 返回 false
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
 
@@ -355,6 +355,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
         // 注册 NioServerSocketChannel
+        // 将 channel注册到 selector
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
