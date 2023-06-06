@@ -101,6 +101,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 }
 
                 int size = readBuf.size();
+
+                // 遍历每一条连接
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
 

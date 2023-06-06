@@ -703,7 +703,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
 
     @Override
     public ChannelFuture write(Object msg) {
-        return write(msg, newPromise());
+        return write(msg, newPromise()); // newPromise() 空回调
     }
 
     @Override

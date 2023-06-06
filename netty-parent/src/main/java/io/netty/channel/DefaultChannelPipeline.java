@@ -206,7 +206,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
-            // 检查 handler 是否是共享的，如果不是且已经被其他 pipline 使用 则抛出异常
+            // 检查 handler 是否重复添加 是否是共享的，如果不是且已经被其他 pipline 使用 则抛出异常
             checkMultiplicity(handler);
 
             // 创建 AbstractChannelHandlerContext
@@ -214,7 +214,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             // 每当有 ChannelHandler 添加到 Pipline 中时都会创建 context
             newCtx = newContext(group, filterName(name, handler), handler);
 
-            // 将 Context 添加到链表中
+            // 将 Context 添加到链表中，Tail 的前一个节点
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventloop yet.
@@ -235,6 +235,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
+                        // 回调添加节点操作
                         callHandlerAdded0(newCtx);
                     }
                 });
@@ -453,6 +454,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     @Override
     public final ChannelPipeline remove(ChannelHandler handler) {
+        // getContextOrDie 要么找到这个节点，要么抛出一个异常
         remove(getContextOrDie(handler));
         return this;
     }
@@ -471,7 +473,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private AbstractChannelHandlerContext remove(final AbstractChannelHandlerContext ctx) {
         assert ctx != head && ctx != tail;
 
+        // 同步方法删除节点
         synchronized (this) {
+
+            // 删除节点操作
             remove0(ctx);
 
             // If the registered is false it means that the channel was not registered on an eventloop yet.
@@ -487,6 +492,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
+                        // 回调删除节点的操作
                         callHandlerRemoved0(ctx);
                     }
                 });
@@ -611,7 +617,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private static void checkMultiplicity(ChannelHandler handler) {
         if (handler instanceof ChannelHandlerAdapter) {
             ChannelHandlerAdapter h = (ChannelHandlerAdapter) handler;
-            if (!h.isSharable() && h.added) {
+            if (!h.isSharable() && h.added) { // 是否可共享，是否被添加过
                 throw new ChannelPipelineException(
                         h.getClass().getName() +
                         " is not a @Sharable handler, so can't be added or removed multiple times.");
@@ -622,7 +628,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     private void callHandlerAdded0(final AbstractChannelHandlerContext ctx) {
         try {
+
+            // ChannelInitializer 调用完成后就会调用 handlerAdd 方法
             ctx.handler().handlerAdded(ctx);
+
+            // 设置节点添加完毕
             ctx.setAddComplete();
         } catch (Throwable t) {
             boolean removed = false;
@@ -656,6 +666,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         // Notify the complete removal.
         try {
             try {
+                // 回调用户 handler 的 handlerRemoved 方法
                 ctx.handler().handlerRemoved(ctx);
             } finally {
                 ctx.setRemoved();
@@ -1112,6 +1123,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     private AbstractChannelHandlerContext getContextOrDie(ChannelHandler handler) {
+
+        // context 方法从头节点开始遍历，如果找到直接返回，没有返回 null
         AbstractChannelHandlerContext ctx = (AbstractChannelHandlerContext) context(handler);
         if (ctx == null) {
             throw new NoSuchElementException(handler.getClass().getName());
@@ -1410,7 +1423,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             ctx.fireChannelActive();  // 绑定完端口后，传播 active 方法
 
-            // 设置读取 accept 事件
+            // 设置读取 accept / read 事件
             readIfIsAutoRead();
         }
 

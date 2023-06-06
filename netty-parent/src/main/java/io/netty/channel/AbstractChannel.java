@@ -79,7 +79,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      *        the parent of this channel. {@code null} if there's no parent.
      */
     protected AbstractChannel(Channel parent) {
-        this.parent = parent;
+        this.parent = parent; // 这个 channel 是服务端通过反射创建的 channel
         id = newId();
         unsafe = newUnsafe(); // 通过 io.netty.channel.nio.AbstractNioMessageChannel 创建一个 io.netty.channel.nio.AbstractNioMessageChannel.NioMessageUnsafe
         pipeline = newChannelPipeline(); // 创建 ChannelPipeline 初始化双向链表

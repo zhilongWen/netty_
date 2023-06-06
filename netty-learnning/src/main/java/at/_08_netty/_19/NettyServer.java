@@ -1,6 +1,7 @@
 package at._08_netty._19;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -24,7 +25,7 @@ public class NettyServer {
         try {
 
             boosGroup = new NioEventLoopGroup(1); // server 线程
-            workGroup = new NioEventLoopGroup(); // client 线程（子线程）
+            workGroup = new NioEventLoopGroup(1); // client 线程（子线程）
 
             ServerBootstrap serverBootstrap = new ServerBootstrap();
 
@@ -44,6 +45,9 @@ public class NettyServer {
                                     System.out.println("server ChannelInitializer...");
 
                                     ChannelPipeline pipeline = ch.pipeline();
+
+                                    // 权限校验
+                                    pipeline.addLast("auth",new AuthHandler());
 
                                     //向pipeline加入解码器 编码器
                                     pipeline.addLast("decoder", new StringDecoder());
@@ -84,6 +88,36 @@ public class NettyServer {
 
 
     }
+}
+
+/**
+ *  模拟权限校验
+ */
+class AuthHandler extends SimpleChannelInboundHandler<ByteBuf>{
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+        // 实现了 SimpleChannelInboundHandler 的 channelRead 方法就需要自己手动释放资源 ReferenceCountUtil.release(msg)
+        // 如果只是实现类 channelRead0 方法则 SimpleChannelInboundHandler 会帮我们自动释放资源
+
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf password) throws Exception {
+
+        if (pass(password)){
+            ctx.pipeline().remove(this);
+        }else {
+            ctx.close();
+        }
+
+    }
+
+    private boolean pass(ByteBuf msg){
+        return false;
+    }
+
 }
 
 class ServerHandler extends ChannelInboundHandlerAdapter{
