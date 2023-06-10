@@ -50,7 +50,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
         System.out.println("server 接收到的数据;" + msg.text());
 
         //回复消息给client
-        ctx.channel().writeAndFlush(new TextWebSocketFrame("server 端 time：" + LocalDateTime.now() + " " + msg.text()));
+        ctx.channel().writeAndFlush(new TextWebSocketFrame("server 端 time：" + LocalDateTime.now() + " " + msg.text())); 
 
     }
 }
