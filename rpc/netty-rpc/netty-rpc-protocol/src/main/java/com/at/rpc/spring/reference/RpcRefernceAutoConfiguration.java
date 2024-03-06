@@ -15,6 +15,8 @@ public class RpcRefernceAutoConfiguration implements EnvironmentAware {
         RpcClientProperties rc=new RpcClientProperties();
         rc.setServiceAddress(address);
         rc.setServicePort(port);
+        rc.setRegistryType(Byte.parseByte(environment.getProperty("gp.registryType")));
+        rc.setRegistryAddress(environment.getProperty("gp.registryAddress"));
         return new SpringRpcReferencePostProcessor(rc);
     }
 

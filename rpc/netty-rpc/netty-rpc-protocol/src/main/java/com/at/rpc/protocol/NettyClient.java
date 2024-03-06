@@ -1,5 +1,7 @@
 package com.at.rpc.protocol;
 
+import com.at.rpc.IRegistryService;
+import com.at.rpc.ServiceInfo;
 import com.at.rpc.codec.RpcDecoder;
 import com.at.rpc.codec.RpcEncoder;
 import com.at.rpc.core.RpcProtocol;
@@ -21,10 +23,11 @@ public class NettyClient {
 
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
-    private String serviceAddress;
-    private int servicePort;
+//    private String serviceAddress;
+//    private int servicePort;
 
-    public NettyClient(String serviceAddress, int servicePort) {
+//    public NettyClient(String serviceAddress, int servicePort) {
+    public NettyClient() {
         log.info("begin init NettyClient");
         bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup)
@@ -42,17 +45,23 @@ public class NettyClient {
                                         .addLast(new RpcClientHandler());
                             }
                         });
-        this.serviceAddress = serviceAddress;
-        this.servicePort = servicePort;
+//        this.serviceAddress = serviceAddress;
+//        this.servicePort = servicePort;
     }
 
-    public void sendRequest(RpcProtocol<RpcRequest> protocol) throws InterruptedException {
-        ChannelFuture future=bootstrap.connect(this.serviceAddress,this.servicePort).sync();
+    public void sendRequest(RpcProtocol<RpcRequest> protocol, IRegistryService registryService) throws Exception {
+
+        ServiceInfo serviceInfo=registryService.discovery(protocol.getContent().getClassName());
+
+        int servicePort = serviceInfo.getServicePort();
+        String serviceAddress = serviceInfo.getServiceAddress();
+
+        ChannelFuture future=bootstrap.connect(serviceAddress,servicePort).sync();
         future.addListener(listener->{
             if(future.isSuccess()){
-                log.info("connect rpc server {} success.",this.serviceAddress);
+                log.info("connect rpc server {} success.",serviceAddress);
             }else{
-                log.error("connect rpc server {} failed .",this.serviceAddress);
+                log.error("connect rpc server {} failed .",serviceAddress);
                 future.cause().printStackTrace();
                 eventLoopGroup.shutdownGracefully();
             }

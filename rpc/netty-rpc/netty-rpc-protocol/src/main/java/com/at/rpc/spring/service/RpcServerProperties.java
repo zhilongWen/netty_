@@ -8,4 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class RpcServerProperties {
 
     private int servicePort;
+
+    private byte registerType;
+
+    private String registryAddress;
 }

@@ -1,5 +1,6 @@
 package com.at.rpc.spring.reference;
 
+import com.at.rpc.IRegistryService;
 import com.at.rpc.constants.ReqType;
 import com.at.rpc.constants.RpcConstant;
 import com.at.rpc.constants.SerialType;
@@ -15,12 +16,14 @@ import java.lang.reflect.Method;
 @Slf4j
 public class RpcInvokerProxy implements InvocationHandler {
 
-    private String serviceAddress;
-    private int servicePort;
+//    private String serviceAddress;
+//    private int servicePort;
+    IRegistryService registryService;
 
-    public RpcInvokerProxy(String serviceAddress, int servicePort) {
-        this.serviceAddress = serviceAddress;
-        this.servicePort = servicePort;
+    public RpcInvokerProxy(IRegistryService registryService) {
+//        this.serviceAddress = serviceAddress;
+//        this.servicePort = servicePort;
+        this.registryService=registryService;
     }
 
     @Override
@@ -40,11 +43,12 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setParams(args);
         protocol.setContent(request);
         //发送请求
-        NettyClient nettyClient=new NettyClient(serviceAddress,servicePort);
+//        NettyClient nettyClient=new NettyClient(serviceAddress,servicePort);
+        NettyClient nettyClient=new NettyClient();
         //构建异步数据处理
         RpcFuture<RpcResponse> future=new RpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()));
         RequestHolder.REQUEST_MAP.put(requestId,future);
-        nettyClient.sendRequest(protocol);
+        nettyClient.sendRequest(protocol,registryService);
         return future.getPromise().get().getData();
     }
 }

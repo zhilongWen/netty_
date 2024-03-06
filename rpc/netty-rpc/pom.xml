@@ -14,6 +14,7 @@
         <module>netty-rpc-provider</module>
         <module>netty-rpc-protocol</module>
         <module>netty-rpc-consumer</module>
+        <module>netty-rpc-registry</module>
     </modules>
 
     <properties>
@@ -94,6 +95,11 @@
             <dependency>
                 <groupId>com.at</groupId>
                 <artifactId>netty-rpc-consumer</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.at</groupId>
+                <artifactId>netty-rpc-registry</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

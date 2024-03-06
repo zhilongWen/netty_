@@ -1,5 +1,7 @@
 package com.at.rpc.spring.service;
 
+import com.at.rpc.IRegistryService;
+import com.at.rpc.ServiceInfo;
 import com.at.rpc.protocol.NettyServer;
 import com.at.rpc.spring.annotation.GpRemoteService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +18,13 @@ public class SpringRpcProviderBean implements InitializingBean, BeanPostProcesso
 
     private final int serverPort;
     private final String serverAddress;
-    public SpringRpcProviderBean(int serverPort) throws UnknownHostException {
+    private final IRegistryService registryService; //修改部分,增加注册中心实现
+
+    public SpringRpcProviderBean(int serverPort,IRegistryService registryService) throws UnknownHostException {
         this.serverPort = serverPort;
-        InetAddress address= InetAddress.getLocalHost();
+        InetAddress address=InetAddress.getLocalHost();
         this.serverAddress=address.getHostAddress();
+        this.registryService=registryService; //修改部分,增加注册中心实现
     }
 
     @Override
@@ -40,11 +45,22 @@ public class SpringRpcProviderBean implements InitializingBean, BeanPostProcesso
         if(bean.getClass().isAnnotationPresent(GpRemoteService.class)){ //针对存在该注解的服务进行发布
             Method[] methods=bean.getClass().getDeclaredMethods();
             for(Method method: methods){ //保存需要发布的bean的映射
-                String key=bean.getClass().getInterfaces()[0].getName()+"."+method.getName();
+                String serviceName = bean.getClass().getInterfaces()[0].getName();
+                String key= serviceName +"."+method.getName();
                 BeanMethod beanMethod=new BeanMethod();
                 beanMethod.setBean(bean);
                 beanMethod.setMethod(method);
                 Mediator.beanMethodMap.put(key,beanMethod);
+                try {
+                    //修改部分,增加注册中心实现
+                    ServiceInfo serviceInfo = new ServiceInfo();
+                    serviceInfo.setServiceAddress(this.serverAddress);
+                    serviceInfo.setServicePort(this.serverPort);
+                    serviceInfo.setServiceName(serviceName);
+                    registryService.register(serviceInfo);//修改部分,增加注册中心实现
+                }catch (Exception e){
+                    log.error("register service {} faild",serviceName,e);
+                }
             }
         }
         return bean;
