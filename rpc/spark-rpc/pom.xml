@@ -37,6 +37,11 @@
             <version>3.4.1</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-network-common_2.12</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+        <dependency>
             <groupId>de.ruedigermoeller</groupId>
             <artifactId>fst</artifactId>
             <version>2.50</version>
