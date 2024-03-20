@@ -10,6 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>rpc/spark-rpc</module>
+        <module>rpc/itstack-demo-netty/itstack-demo-netty-1-00</module>
     </modules>
 
     <properties>
