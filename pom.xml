@@ -11,6 +11,7 @@
     <modules>
         <module>rpc/spark-rpc</module>
         <module>rpc/itstack-demo-netty/itstack-demo-netty-1-00</module>
+        <module>rpc/akka</module>
     </modules>
 
     <properties>
